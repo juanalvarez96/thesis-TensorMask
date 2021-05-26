@@ -16,7 +16,7 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 import pycocotools
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 import ipdb
 from detectron2.structures import BoxMode
@@ -46,7 +46,7 @@ def get_youtube_dicts(img_dir):
         objects = list(np.unique(np.asarray(im)))
         stuff = []
         for i in objects[1:]:
-            ann['bbox']=extract_bboxes(np.where(np.asarray(im, order="F")==i, i, 0))[0]
+            ann['bbox']=extract_bboxes(np.where(np.asarray(im, order="F")==i, i, 0), im)[0]
             ann['bbox_mode']=BoxMode.XYWH_ABS
         #ipdb.set_trace()
             ann['segmentation']=pycocotools.mask.encode( \
@@ -68,7 +68,7 @@ def get_youtube_dicts(img_dir):
     return data
     
 
-def extract_bboxes(arr):
+def extract_bboxes(arr, im):
   bboxes = []
   for mask_n in np.unique(arr)[1:]:
     # Extract class
