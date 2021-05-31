@@ -8,6 +8,9 @@ setup_logger()
 # import some common libraries
 import numpy as np
 import os, json, cv2, random
+from skimage.io import imread
+from skimage.segmentation import mark_boundaries
+from skimage.measure import label, regionprops, find_contours
 
 # import some common detectron2 utilities
 from detectron2 import model_zoo
@@ -26,6 +29,8 @@ from detectron2.engine import DefaultTrainer
 # Paths with multiple images
 annotation_path="/home/juan.vallado/data/YoutubeVIS/train/Annotations/0a8c467cc3"
 image_path="/home/juan.vallado/data/YoutubeVIS/train/JPEGImages/0a8c467cc3"
+annotation_path="/home/juan.vallado/data/YoutubeVIS/train/Annotations/0a7a2514aa"
+image_path="/home/juan.vallado/data/YoutubeVIS/train/JPEGImages/0a7a2514aa"
 
 
 # Igual tenemos que cambiar todo lo que llama PIL
@@ -46,7 +51,7 @@ def get_youtube_dicts(img_dir):
         objects = list(np.unique(np.asarray(im)))
         stuff = []
         for i in objects[1:]:
-            ann['bbox']=extract_bboxes(np.where(np.asarray(im, order="F")==i, i, 0), im)[0]
+            ann['bbox']=extract_bboxes(np.where(np.asarray(im, order="F")==i, i, 0), im)
             ann['bbox_mode']=BoxMode.XYWH_ABS
         #ipdb.set_trace()
             ann['segmentation']=pycocotools.mask.encode( \
@@ -69,23 +74,27 @@ def get_youtube_dicts(img_dir):
     
 
 def extract_bboxes(arr, im):
-  bboxes = []
-  for mask_n in np.unique(arr)[1:]:
-    # Extract class
-    mask=np.where(arr == mask_n, 1, 0)
-    rows=np.any(mask, axis = 1)
-    cols=np.any(mask, axis = 0)
-    rmin, rmax = np.where(rows)[0][[0, -1]]
-    cmin, cmax = np.where(cols)[0][[0, -1]]
-    bbox=[float((cmin+cmax)/2), float((rmin+rmax)/2), float(cmax-cmin), float(rmax-rmin)]
-    bboxes.append(bbox)
-  return bboxes
+  # Extract class
+  props = regionprops(arr)
+  assert len(props) == 1, "Error: Expected one mask, but got {}".format(len(props))
+  assert props[0].area > 0, "Error: Area of mask is <0!"
+  rmin, cmin, rmax, cmax=props[0].bbox
+  return [float(cmin), float(rmin), float(cmax-cmin), float(rmax-rmin)]
+  #return props[0].bbox
 get_youtube_dicts(image_path)
 
 for d in ["train"]:
     DatasetCatalog.register("ytvis_" + d, lambda d=d: get_youtube_dicts(image_path))
-    #MetadataCatalog.get("ytvis_" + d).thing_classes = ["sth", "another", "yahora", "que"]
+    #MetadataCatalog.get("ytvis_" + d).thing_classes = ["sth", "another", 'sd']
 ytvis_metadata = MetadataCatalog.get("ytvis_train")
+
+# Visualize annotations!
+dataset_dicts = get_youtube_dicts(image_path)
+for d in random.sample(dataset_dicts, 3):
+    img = cv2.imread(d["file_name"])
+    visualizer = Visualizer(img[:, :, ::-1], metadata=ytvis_metadata, scale=0.5)
+    out = visualizer.draw_dataset_dict(d)
+    cv2.imwrite("prueba.jpg", out.get_image()[:, :, ::-1])    
 
 
 # RUN

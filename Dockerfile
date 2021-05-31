@@ -43,6 +43,7 @@ ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
 RUN pip uninstall jedi -y
 RUN pip install --user jedi==0.17.2 
 RUN python -m pip install --user -e detectron2_repo
+RUN python3 -m pip install scikit-image
 
 # Set a fixed model cache directory.
 ENV FVCORE_CACHE="/tmp"
