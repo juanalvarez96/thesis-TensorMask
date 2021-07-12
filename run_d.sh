@@ -18,9 +18,8 @@ nvidia-docker  run   \
 	-v $CODE_DIR:/home/$username/src \
 	-v $ROOT_DIR/output:/home/appuser/output \
 	--name juan_thesis_tensormask \
-	-it image_juan \
-	bash
-
+	-d image_juan 
+#	bash
 
 
 

@@ -32,7 +32,7 @@ RUN pip install --user tensorboard cmake   # cmake from apt-get is too old
 
 #RUN pip install --user 'git+https://github.com/facebookresearch/fvcore'
 # install detectron2
-RUN git clone https://github.com/facebookresearch/detectron2 detectron2_repo
+#RUN git clone https://github.com/facebookresearch/detectron2 detectron2_repo
 # set FORCE_CUDA because during `docker build` cuda is not accessible
 ENV FORCE_CUDA="1"
 # This will by default build detectron2 for all common cuda architectures and take a lot more time,
@@ -40,14 +40,23 @@ ENV FORCE_CUDA="1"
 ARG TORCH_CUDA_ARCH_LIST="Kepler;Kepler+Tesla;Maxwell;Maxwell+Tegra;Pascal;Volta;Turing"
 ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
 
+# Set dataset folder 
+ENV DETECTRON2_DATASETS="/home/juan.vallado/data/detectron2/"
+
 RUN pip uninstall jedi -y
 RUN pip install --user jedi==0.17.2 
-RUN python -m pip install --user -e detectron2_repo
+#RUN python -m pip install --user -e detectron2_repo
+RUN python -m pip install --user 'git+https://github.com/facebookresearch/detectron2.git'
 RUN python3 -m pip install scikit-image
 
 # Set a fixed model cache directory.
 ENV FVCORE_CACHE="/tmp"
-WORKDIR /home/appuser/detectron2_repo
-
-
+WORKDIR /home/appuser/
+RUN chmod 777 /home/appuser/
+#RUN git clone https://github.com/facebookresearch/detectron2
+#RUN mv detectron2/projects/TensorMask .
+#RUN rm -Rf detectron2
+#RUN pip install -e TensorMask
+#RUN chmod 777 TensorMask
+CMD sudo sh /home/juan.vallado/src/commands.sh
 

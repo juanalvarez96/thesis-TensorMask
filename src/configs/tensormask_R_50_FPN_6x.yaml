@@ -1,0 +1,17 @@
+_BASE_: "Base-TensorMask.yaml"
+MODEL:
+  WEIGHTS: "https://dl.fbaipublicfiles.com/detectron2/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
+  RESNETS:
+    DEPTH: 50
+  ROI_HEADS:
+    BATCH_SIZE_PER_IMAGE: 128
+    NUM_CLASSES: 2
+    SCORE_THRESH_TEST: 0.7
+
+SOLVER:
+  STEPS: []
+  MAX_ITER: 25000
+INPUT:
+  MIN_SIZE_TRAIN_SAMPLING: "range"
+  MIN_SIZE_TRAIN: (640, 800)
+  MASK_FORMAT: "bitmask"
