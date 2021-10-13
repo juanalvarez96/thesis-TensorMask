@@ -116,14 +116,14 @@ def transformations(name, cfg):
     datset=DatasetCatalog.get(name)
     dataloader = detectron2.data.build_detection_train_loader(dataset=datset,
         mapper = DatasetMapper(cfg = cfg, is_train=True, augmentations=[
-            T.RandomBrightness(0,1, 10),
-            T.RandomFlip(prob=0.5),
-            T.RandomRotation(angle=[315.0, 45.0], expand=False, sample_style="range"),
-            T.RandomContrast(0,1, 10),
-            T.RandomExtent((100, 50), (100, 80)),
-            T.RandomSaturation(0.1,10),
-            T.RandomLighting(8),
-            T.RandomCrop("relative_range", (0.1,1))
+            T.RandomContrast(-1, 1)
+            #T.RandomFlip(prob=0.5),
+            #T.RandomRotation(angle=[315.0, 45.0], expand=False, sample_style="range"),
+            #T.RandomBrightness(0.9, 1.1)
+            #T.RandomExtent((100, 50), (100, 80)),
+            #T.RandomSaturation(0.1,10),
+            #T.RandomLighting(8),
+            #T.RandomCrop("relative_range", (0.1,1))
 
 ]), total_batch_size=128)
 annotation_path = os.path.join(parent_annotation_path, dataset)
@@ -131,7 +131,7 @@ image_path = os.path.join(parent_image_path, dataset)
 
 for d in ["train", "test"]:
         DatasetCatalog.register("ytvis_" + d, lambda d=d: get_youtube_dicts("{0}/{1}".format(image_path, d), "{0}/{1}".format(annotation_path, d)))
-        MetadataCatalog.get("ytvis_" + d).thing_classes = ["la_cosa", "nada"]
+        MetadataCatalog.get("ytvis_" + d).thing_classes = ["target_1", "target_2"]
 ytvis_metadata = MetadataCatalog.get("ytvis_train")
 
 def visualize(n):
@@ -199,7 +199,7 @@ dataset2 = random.choice(candidates)
 # Register dataset
 for d in ["train", "test"]:
         DatasetCatalog.register("ytvis2_" + d, lambda d=d: get_youtube_dicts("{0}/{1}".format(image_path, d), "{0}/{1}".format(annotation_path, d)))
-        MetadataCatalog.get("ytvis2_" + d).thing_classes = ["la_cosa", "nada"]
+        MetadataCatalog.get("ytvis2_" + d).thing_classes = ["target_1", "target_2"]
 ytvis_metadata = MetadataCatalog.get("ytvis2_train")
 
 # Use same config as before:

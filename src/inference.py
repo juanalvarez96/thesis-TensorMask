@@ -93,7 +93,7 @@ def extract_bboxes(arr, im):
 def register(annotation_path, image_path, name):
     for d in ["train", "test"]:
         DatasetCatalog.register("ytvis_{}_".format(name) + d, lambda d=d: get_youtube_dicts("{0}/{1}".format(image_path, d), "{0}/{1}".format(annotation_path, d)))
-        MetadataCatalog.get("ytvis_{}_".format(name) + d).thing_classes = ["la_cosa"]
+        MetadataCatalog.get("ytvis_{}_".format(name) + d).thing_classes = ["target"]
 
 
 # Register datasets
@@ -138,15 +138,19 @@ val_loader = build_detection_test_loader(cfg, "ytvis_tl_test")
 inference_on_dataset(predictor.model, val_loader, evaluator)
 
 
-dataset_dicts = DatasetCatalog.get("ytvis_tl_test")
-ytvis_metadata = MetadataCatalog.get("ytvis_tl_train")
+dataset_dicts_tl = DatasetCatalog.get("ytvis_tl_test")
+ytvis_metadata_tl = MetadataCatalog.get("ytvis_tl_train")
 
+dataset_dicts_bl = DatasetCatalog.get("ytvis_bl_test")
+ytvis_metadata_bl = MetadataCatalog.get("ytvis_bl_train")
+
+#Save images from tl model
 imgs = []
-for d in random.sample(dataset_dicts, 3):    
+for d in random.sample(dataset_dicts_tl, 3):    
     im = cv2.imread(d["file_name"])
     outputs = predictor(im)  # format is documented at https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
     v = Visualizer(im[:, :, ::-1],
-                   metadata=ytvis_metadata, 
+                   metadata=ytvis_metadata_tl, 
                    scale=0.5, 
                    instance_mode=ColorMode.IMAGE_BW   # remove the colors of unsegmented pixels. This option is only available for segmentation models
     )
@@ -154,5 +158,21 @@ for d in random.sample(dataset_dicts, 3):
     imgs.append(out.get_image()[:, :, ::-1])
 
 for i in range (0, len(imgs)):
-    cv2.imwrite("{}y.jpg".format(i), imgs[i])
+    cv2.imwrite("output/{}tl.jpg".format(i), imgs[i])
 
+#Save images from bl model
+
+imgs = []
+for d in random.sample(dataset_dicts_bl, 3):    
+    im = cv2.imread(d["file_name"])
+    outputs = predictor(im)  # format is documented at https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
+    v = Visualizer(im[:, :, ::-1],
+                   metadata=ytvis_metadata_bl, 
+                   scale=0.5, 
+                   instance_mode=ColorMode.IMAGE_BW   # remove the colors of unsegmented pixels. This option is only available for segmentation models
+    )
+    out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+    imgs.append(out.get_image()[:, :, ::-1])
+
+for i in range (0, len(imgs)):
+    cv2.imwrite("output/{}bl.jpg".format(i), imgs[i])
